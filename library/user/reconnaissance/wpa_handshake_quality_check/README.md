@@ -95,22 +95,6 @@ This ensures repeat executions remain fast and storage stays clean.
 
 ---
 
-## Logging
-
-### Pager UI
-
-All status updates, progress information, and results are displayed live using the built-in `LOG` function.
-
-This includes:
-- File processing progress
-- Classification results
-- Skipped duplicates
-- Final execution summary
-
-No log files are written to disk.
-
----
-
 ## Requirements
 
 - Existing WPA handshake PCAP files  
@@ -119,12 +103,5 @@ No log files are written to disk.
 
 ---
 
-## Legal
-
-This payload is intended for authorized wireless reconnaissance, testing, and educational use only.
-
-Ensure you have permission to capture and analyze wireless traffic in your environment.
-
----
 
 **benwies**
