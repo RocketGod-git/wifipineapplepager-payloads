@@ -15,7 +15,7 @@ LOG "Preparing to uninstall Tailscale..."
 INSTALL_DIR="/usr/sbin"
 INIT_SCRIPT="/etc/init.d/tailscaled"
 CONFIG_DIR="/etc/tailscale"
-STATE_DIR="/var/lib/tailscale"
+STATE_DIR="/root/.tailscale"
 RUN_DIR="/var/run/tailscale"
 
 # ============================================

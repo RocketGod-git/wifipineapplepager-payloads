@@ -14,7 +14,7 @@ INSTALL_DIR="/usr/sbin"
 INIT_SCRIPT="/etc/init.d/tailscaled"
 CONFIG_DIR="/etc/tailscale"
 CONFIG_FILE="$CONFIG_DIR/config"
-STATE_DIR="/var/lib/tailscale"
+STATE_DIR="/root/.tailscale"
 
 # ============================================
 # HELPER FUNCTIONS

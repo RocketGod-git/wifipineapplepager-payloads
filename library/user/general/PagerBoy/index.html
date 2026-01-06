@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PagerBoy</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta id="viewport-meta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+       
+    <style>
+        /* === CORE VARIABLES === */
+        :root {
+            --bg-color: #222;
+            --chassis-color: #c0c0c0;
+            --bezel-color: #777;
+            --screen-bg: #000;
+            --btn-dpad: #222;
+            --btn-action: #b90040;
+            --btn-meta: #333;
+            --brand-color: #3020b0;
+            --text-color: #333;
+            --switch-off: #888;
+            --switch-on: #b90040;
+            --pager-screen-bg: #9bbc0f;
+            --pager-screen-fg: #0f380f;
+        }
+
+        /* DARK MODE */
+        body.dark-mode {
+            --bg-color: #000;
+            --chassis-color: #111;
+            --bezel-color: #222;
+            --btn-action: #00FF00;
+            --btn-dpad: #1a1a1a;
+            --brand-color: #00ff00;
+            --pager-screen-bg: #000000;
+            --pager-screen-fg: #00ff00;
+            --switch-on: #00ff00;
+        }
+
+        /* === FONTS & RESET === */
+        @font-face { font-family: 'Material Icons'; font-style: normal; font-weight: 400; src: local('Material Icons'), local('MaterialIcons-Regular'), url(/MaterialIcons-Regular.ttf) format('truetype'); }
+        @font-face { font-family: 'Steelfish'; font-style: normal; font-weight: 400; src: local('Steelfish'), url(/Steelfish.ttf) format('truetype'); }
+        .material-icons { font-family: 'Material Icons',serif; font-weight: normal; font-style: normal; font-size: 24px; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; -moz-osx-font-smoothing: grayscale; font-feature-settings: 'liga'; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html { height: 100%; height: -webkit-fill-available; }
+        
+        body {
+            background-color: var(--bg-color);
+            font-family: sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; min-height: -webkit-fill-available;
+            color: #ccc;
+            overflow-x: hidden;
+            touch-action: pan-y;
+            transition: background-color 0.3s ease;
+        }
+
+        /* === LOGIN OVERLAY === */
+        #login {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #login img { width: 80%; max-width: 300px; margin-bottom: 20px; }
+        #login input { padding: 12px; font-size: 16px; margin: 10px 0; border-radius: 4px; border: 1px solid #555; background: #111; color: white; text-align: center; }
+        #login button { padding: 12px 30px; font-size: 18px; cursor: pointer; background: #444; color: white; border: 1px solid #555; border-radius: 4px; font-family: 'Steelfish', sans-serif; }
+        #login_error { color: #ff5555; margin-top: 15px; font-family: monospace; }
+
+        /* === MAIN LAYOUT === */
+        #app-container {
+            display: none;
+            width: 100%;
+            flex-direction: column; align-items: center;
+        }
+
+        /* === MENU DIALOG === */
+        dialog#menu-modal {
+            background: #222; color: #fff; border: 1px solid #555; padding: 20px;
+            border-radius: 8px; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8); width: 80%; max-width: 350px; z-index: 20000;
+        }
+        dialog::backdrop { background: rgba(0,0,0,0.8); }
+        .modal-btn {
+            display: block; width: 100%; padding: 12px; margin-bottom: 8px;
+            background: #333; color: white; border: 1px solid #444;
+            text-align: left; cursor: pointer; font-size: 16px; font-family: 'Steelfish', sans-serif;
+        }
+        .modal-btn:hover { background: #444; }
+        .modal-btn i { vertical-align: middle; margin-right: 10px; }
+
+        /* === CHASSIS === */
+        .chassis {
+            background-color: var(--chassis-color); 
+            background-image: 
+                linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.05) 100%),
+                repeating-radial-gradient(circle at 50% 50%, transparent 0, rgba(0,0,0,0.02) 2px);                
+            width: 100%; max-width: 500px;
+            border-radius: 15px 15px 60px 15px;
+            padding: 30px 25px 40px 25px;
+            box-shadow: 
+                12px 12px 24px rgba(0,0,0,0.6),
+                inset 2px 2px 3px rgba(255,255,255,0.6),
+                inset 10px 10px 20px rgba(255,255,255,0.05),
+                inset -5px -5px 15px rgba(0,0,0,0.3);
+            margin: 20px auto;
+            position: relative;
+            display: flex; flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.4);
+            transition: background-color 0.3s ease;
+        }
+
+        /* POWER SWITCH */
+        .power-switch-container {
+            position: absolute; top: 0; right: 20px; width: 60px; height: 30px;
+            background: rgba(0,0,0,0.1); border-radius: 0 0 5px 5px;
+            display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 20;
+        }
+        .power-slider { width: 40px; height: 12px; background: #222; border-radius: 6px; position: relative; box-shadow: inset 1px 1px 3px black; }
+        .power-nub {
+            width: 14px; height: 14px; background: var(--switch-off);
+            border-radius: 50%; position: absolute; top: -1px; left: 0;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            transition: left 0.3s, background-color 0.3s;
+        }
+        body.dark-mode .power-nub { left: 26px; background: var(--switch-on); }
+
+        /* SCREEN AREA */
+        .screen-bezel {
+            background-color: var(--bezel-color);
+            border-radius: 10px 10px 40px 10px;
+            padding: 0;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+            width: 100%; aspect-ratio: 1/1; max-height: 50vh;
+            display: flex; justify-content: center; align-items: center;
+            position: relative; overflow: hidden;
+            border: 30px solid var(--lens-bg);
+            margin-bottom: 10px;
+        }
+        
+        #screen-wrapper { position: relative; z-index: 2; width: 100%; height: auto; max-height: 100%; object-fit: contain; background: transparent; box-shadow: 0 0 25px rgba(0,0,0,0.9); }
+        #pager { width: 100%; height: auto; display: block; image-rendering: pixelated; }
+        #blur-bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(25px) brightness(0.6) saturate(1.2); z-index: 1; opacity: 0.8; transform: scale(1.5); }
+
+        #pager_error {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: monospace; z-index: 10;
+        }
+        #screen_retry { background: #ccc; color: black; border: none; padding: 5px 10px; margin-top: 10px; cursor: pointer; }
+
+        /* BRANDING */
+        .brand {
+            font-family: 'Steelfish', sans-serif; font-style: italic; font-weight: bold; font-size: 36px;
+            color: var(--brand-color); text-align: right; padding-right: 25px;
+            margin-bottom: 10px; margin-top: 5px;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.2);
+            opacity: 0.9; letter-spacing: 2px;
+            transition: color 0.3s ease;
+        }
+        body.dark-mode .brand { color: var(--brand-color); }
+
+        /* CONTROLS AREA */
+        .meta-buttons { 
+            display: flex; justify-content: center; gap: 30px; 
+            margin-top: 20px; margin-bottom: 20px; 
+        }
+        
+        .controls-row {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 0 10px; margin-bottom: 10px;
+        }
+
+        /* D-PAD */
+        .dpad { width: 130px; height: 130px; position: relative; }
+        .dpad button {
+            position: absolute; background-color: var(--btn-dpad); border: none; cursor: pointer;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+        .dpad button:active, .dpad button.pressed { box-shadow: inset 1px 1px 3px rgba(0,0,0,0.6); }
+        
+        .d-up { top: 0; left: 33.3%; width: 33.3%; height: 33.3%; border-radius: 4px 4px 0 0; }
+        .d-down { bottom: 0; left: 33.3%; width: 33.3%; height: 33.3%; border-radius: 0 0 4px 4px; }
+        .d-left { top: 33.3%; left: 0; width: 33.3%; height: 33.3%; border-radius: 4px 0 0 4px; }
+        .d-right { top: 33.3%; right: 0; width: 33.3%; height: 33.3%; border-radius: 0 4px 4px 0; }
+        .d-center { position: absolute; top: 33.3%; left: 33.3%; width: 33.3%; height: 33.3%; background: var(--btn-dpad); }
+        .d-center::after { content:''; display:block; width: 80%; height: 80%; border-radius: 50%; background: radial-gradient(circle, #333 0%, #111 100%); margin: 10%; opacity: 0.5; }
+
+        /* A/B BUTTONS */
+        .ab-buttons { display: flex; gap: 15px; transform: rotate(-15deg); margin-right: 10px; align-items: flex-end; }
+        .btn-wrapper { text-align: center; }
+        .btn-round {
+            width: 55px; height: 55px; border-radius: 50%;
+            background-color: var(--btn-action); border: none;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+            color: transparent; cursor: pointer;
+        }
+        .btn-round:active, .btn-round.pressed { box-shadow: inset 2px 2px 5px rgba(0,0,0,0.6); }
+        .btn-label { font-family: sans-serif; font-weight: bold; font-size: 16px; color: var(--brand-color); margin-top: 8px; letter-spacing: 1px; }
+
+        /* START/SELECT */
+        .pill-wrapper { display: flex; flex-direction: column; align-items: center; transform: rotate(-15deg); }
+        .pill-btn {
+            width: 70px; height: 24px; background: var(--btn-meta);
+            border: none; border-radius: 12px; box-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+            cursor: pointer; margin-bottom: 5px;
+        }
+        .pill-btn:active, .pill-btn.pressed { transform: scale(0.95); box-shadow: inset 1px 1px 2px rgba(0,0,0,0.8); }
+        .pill-label { font-size: 12px; font-weight: bold; color: var(--brand-color); letter-spacing: 1px; }
+
+        /* TERMINAL SECTION (8-Button Grid) */
+        #extras { width: 100%; max-width: 600px; padding: 0 10px; margin-bottom: 50px; }
+        
+        .terminal-actions {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .term-key {
+            background: var(--btn-meta); color: #ddd; border: none;
+            padding: 15px 0; border-radius: 20px; font-family: 'Steelfish', sans-serif;
+            font-size: 18px; cursor: pointer; text-align: center;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+        .term-key:active { background: #111; box-shadow: inset 1px 1px 3px rgba(0,0,0,0.8); }
+
+        #terminal-wrapper {
+            width: 100%; height: 260px;
+            background: var(--pager-screen-bg); border-radius: 4px;
+            padding: 5px; overflow: hidden;
+        }
+        #terminal { width: 100%; height: 100%; }
+
+        /* === MOBILE RESPONSIVE OPTIMIZATIONS === */
+        @media (max-width: 600px) {
+            .chassis {
+                width: 100%; max-width: 100%;
+                margin: 0;
+                border-radius: 0; box-shadow: none; border: none;
+                min-height: 100svh; 
+                padding: 40px 0 30px 0;
+                justify-content: flex-start;
+            }
+            
+            /* Pull screen to top */
+            .screen-bezel { 
+                margin-top: 10px; 
+                border-radius: 0 0 20px 20px;
+                border-left: 0; border-right: 0; border-top: 20px solid var(--lens-bg); border-bottom: 20px solid var(--lens-bg);
+            }
+            
+            /* SWITCH POSITION */
+            .power-switch-container { 
+                right: 10px; 
+                top: 10px; 
+            }
+            
+            /* Brand Alignment */
+            .brand { text-align: right; padding-right: 25px; margin: 5px 0; }
+            .power-label { display: none !important; }
+            .meta-buttons { margin-top: auto; margin-bottom: 30px; gap: 40px; }
+            .controls-row { margin-bottom: 20px; padding: 0 15px; }
+            
+            /* ERGONOMIC SPACING */
+            .dpad { margin-left:  15px; }            
+            .ab-buttons { 
+                margin-right: 10px;
+                margin-top: 50px;
+            }
+            
+            /* Terminal Keys */
+            .terminal-actions { grid-template-columns: repeat(4, 1fr); margin-top: 20px; }
+            #terminal { border-radius: 0; }
+        }
+
+        /* UTILITIES */
+        [hidden] { display: none !important; }
+        .spinner { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #fff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #archiveOverlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.55); z-index: 9999; }
+        #archiveOverlay.show { display: flex; }
+        #archiveToast { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); background: rgba(25, 25, 25, 0.95); color: #fff; border: 1px solid rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 8px; z-index: 10000; display: none; }
+        #archiveToast.show { display: block; }
+    </style>
+    
+    <link rel="stylesheet" href="xterm.css" />
+    <script src="xterm.js"></script>
+</head>
+<body>
+
+    <div id="archiveOverlay" aria-hidden="true"><div class="spinner"></div></div>
+    <div id="archiveToast"></div>
+
+    <dialog id="menu-modal">
+        <h3 style="margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px;">SYSTEM MENU</h3>
+        <button class="modal-btn" onclick="archiveLoot()"><i class="material-icons">archive</i> Archive Loot</button>
+        <button class="modal-btn" onclick="location.href='/api/loot/zip'"><i class="material-icons">download</i> Download Loot</button>
+        <button class="modal-btn" onclick="logout()"><i class="material-icons">logout</i> Log Out</button>
+        <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+            <button onclick="document.getElementById('menu-modal').close()" style="padding: 10px 20px; cursor: pointer; background: #555; color: white; border: none; border-radius: 4px;">CLOSE</button>
+        </div>
+    </dialog>
+
+    <div id="login">
+        <img src="images/virtualpagertitle.png" alt="PagerBoy">
+        <div id="loading_spinner" hidden><div class="spinner"></div></div>
+        <div id="login_form">
+            <label>PASSWORD</label><br>
+            <input type="password" id="password" required><br>
+            <button id="loginbutton">Start</button>
+        </div>
+        <div id="login_error"></div>
+    </div>
+
+    <div id="app-container">
+        
+        <div class="chassis">
+            <div class="power-switch-container" onclick="togglePower()">
+                <div class="power-slider"><div class="power-nub"></div></div>
+            </div>
+            
+            <div class="screen-bezel">
+                <div class="power-led"></div>
+                <div class="screen-glass">
+                    <img id="blur-bg-layer" src="">
+                    <div id="screen-wrapper">
+                        <img id="pager" width="480" height="222">
+                        <canvas id="pager_canvas" width="480" height="222" style="display:none;"></canvas>
+                        <div hidden id="pager_error">
+                            <span>NO SIGNAL</span>
+                            <button id="screen_retry">RETRY</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand">PagerBoy</div>
+
+            <div class="meta-buttons">
+                <div class="pill-wrapper">
+                    <button class="pill-btn" onclick="document.getElementById('menu-modal').showModal()"></button>
+                    <div class="pill-label">SELECT</div>
+                </div>
+                <div class="pill-wrapper">
+                    <button class="pill-btn" onclick="activateTerminalMode()"></button>
+                    <div class="pill-label">START</div>
+                </div>
+            </div>
+
+            <div class="controls-row">
+                <div class="dpad">
+                    <div class="d-center"></div>
+                    <button class="d-up" data-key="ArrowUp"></button>
+                    <button class="d-left" data-key="ArrowLeft"></button>
+                    <button class="d-right" data-key="ArrowRight"></button>
+                    <button class="d-down" data-key="ArrowDown"></button>
+                </div>
+                
+                <div class="ab-buttons">
+                    <div class="btn-wrapper">
+                        <button class="btn-round" data-key="Escape">B</button>
+                        <div class="btn-label">B</div>
+                    </div>
+                    <div class="btn-wrapper" style="margin-top: -20px;">
+                        <button class="btn-round" data-key="Enter">A</button>
+                        <div class="btn-label">A</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="extras">
+            <div class="terminal-actions">
+                <button class="term-key" onclick="sendTermKey('\t')">TAB</button>
+                <button class="term-key" onclick="sendTermKey('\x1b[A')">UP</button>
+                <button class="term-key" onclick="sendTermKey('\x1b[B')">DOWN</button>
+                <button class="term-key" onclick="sendTermKey('\x1b[D')">LEFT</button>
+                <button class="term-key" onclick="sendTermKey('\x1b[C')">RIGHT</button>
+                <button class="term-key" onclick="sendTermKey('\x1b')">ESC</button>
+                <button class="term-key" onclick="sendTermKey('\x03')">CTRL+C</button>
+                <button class="term-key" onclick="sendTermKey('\x0c')">CLEAR</button>
+            </div>
+            <div id="terminal-wrapper">
+                <div id="terminal"></div>
+            </div>
+            <p style="text-align: center; color: #555; margin-bottom: 20px;">(Tap terminal to type)</p>
+        </div>
+
+    </div>
+
+    <script>
+        let login_ok = false, keyws, screenws, shellws, server_id = '';
+        const SCREEN_WIDTH = 480, SCREEN_HEIGHT = 222, FB_STRIDE = SCREEN_WIDTH * 4;
+        let loggedFrameInfo = false;
+
+        // Terminal Setup
+        const SHELL_WS_PATH = "/api/terminal/openWs";
+        const isMobile = window.innerWidth <= 600;
+        const term = new Terminal({
+            cols: isMobile ? 42 : 80, 
+            rows: 24, 
+            theme: { background: '#9bbc0f', foreground: '#0f380f', cursor: '#0f380f' },
+            cursorBlink: true
+        });
+
+        function togglePower() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('pager_power', isDark ? 'on' : 'off');
+            
+            // Update Terminal Theme
+            if(isDark) {
+                term.options.theme = { background: '#000000', foreground: '#00ff00', cursor: '#00ff00' };
+                document.getElementById('terminal-wrapper').style.background = '#000';
+            } else {
+                term.options.theme = { background: '#9bbc0f', foreground: '#0f380f', cursor: '#0f380f' };
+                document.getElementById('terminal-wrapper').style.background = '#9bbc0f';
+            }
+        }
+
+        function activateTerminalMode() { document.getElementById('extras').scrollIntoView({ behavior: 'smooth' }); term.focus(); }
+
+        // === API / LOGIN LOGIC ===
+        function check_login() {
+            const xhr = new XMLHttpRequest();
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    const response = JSON.parse(xhr.responseText);
+                    server_id = response["serverid"];
+                    if (!login_ok) {
+                        document.getElementById('login').hidden = true;
+                        document.getElementById('app-container').style.display = 'flex';
+                        document.body.classList.add('logged-in');
+                        
+                        // Apply saved power state
+                        if(localStorage.getItem('pager_power') === 'on') togglePower();
+                        
+                        connect();
+                        login_ok = true;
+                    }
+                } else {
+                    document.getElementById('login').hidden = false;
+                    document.getElementById('app-container').style.display = 'none';
+                    if (login_ok) { login_ok = false; close(); }
+                }
+                document.getElementById('loading_spinner').hidden = true;
+                document.getElementById('login_form').hidden = false;
+            };
+            xhr.open('GET', '/api/api_ping');
+            xhr.send();
+        }
+
+        function login() {
+            const pw = document.getElementById('password');
+            document.getElementById('loading_spinner').hidden = false;
+            document.getElementById('login_form').hidden = true;
+            
+            const xhr = new XMLHttpRequest();
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    const response = JSON.parse(xhr.responseText);
+                    const decoded = JSON.parse(atob(response['token'].split('.')[0]));
+                    document.cookie = `AUTH_${decoded.ServerId}=${response['token']};path=/;samesite=strict;max-age=${60*60*12}`;
+                    serverid = decoded.ServerId;
+                    check_login();
+                } else {
+                    document.getElementById('loading_spinner').hidden = true;
+                    document.getElementById('login_form').hidden = false;
+                    document.getElementById('login_error').innerText = "Incorrect Password";
+                }
+            };
+            const json = { "username": "root", "password": pw.value };
+            xhr.open('POST', '/api/login');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(json));
+        }
+
+        function logout() {
+            document.cookie = `AUTH_${server_id}=dead;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`;
+            location.reload();
+        }
+        
+        function archiveLoot() {
+            document.getElementById("archiveOverlay").classList.add("show");
+            fetch("/api/loot/archive", { method: "POST" })
+                .then(r => {
+                    document.getElementById("archiveOverlay").classList.remove("show");
+                    const t = document.getElementById("archiveToast");
+                    t.textContent = r.ok ? "Loot Archived" : "Archive Failed";
+                    t.classList.add("show");
+                    setTimeout(() => t.classList.remove("show"), 2500);
+                });
+        }
+
+        // === WEBSOCKETS ===
+        function connect() {
+            const pager = document.getElementById('pager');
+            const pagerError = document.getElementById('pager_error');
+
+            keyws = new WebSocket(`ws://${window.location.host}/api/pager/input/keys.ws`);
+            
+            screenws = new WebSocket(`ws://${window.location.host}/api/pager/display/screen.ws`);
+            screenws.binaryType = "arraybuffer";
+            screenws.onopen = () => { pagerError.hidden = true; };
+            screenws.onmessage = (e) => renderRGBAFrame(new Uint8Array(e.data));
+            screenws.onerror = () => { pagerError.hidden = false; };
+
+            shellws = new WebSocket(`ws://${window.location.host}/api/terminal/openWs`);
+            shellws.onopen = () => term.write("\r\n[connected]\r\n");
+            shellws.onmessage = (e) => {
+                if(typeof e.data === 'string') term.write(e.data);
+                else if(e.data instanceof Blob) e.data.arrayBuffer().then(b => term.write(new Uint8Array(b)));
+                else term.write(new Uint8Array(e.data));
+            };
+        }
+
+        function renderRGBAFrame(bytes) {
+            if (bytes.length < FB_STRIDE * SCREEN_HEIGHT) return;
+            const canvas = document.getElementById("pager_canvas");
+            const ctx = canvas.getContext("2d");
+            const imgData = ctx.createImageData(SCREEN_WIDTH, SCREEN_HEIGHT);
+            const dst = imgData.data;
+            
+            let di = 0;
+            for (let y = 0; y < SCREEN_HEIGHT; y++) {
+                const rowStart = y * FB_STRIDE;
+                for (let x = 0; x < SCREEN_WIDTH; x++) {
+                    const si = rowStart + x * 4;
+                    dst[di] = bytes[si];
+                    dst[di+1] = bytes[si+1];
+                    dst[di+2] = bytes[si+2];
+                    dst[di+3] = bytes[si+3];
+                    di += 4;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+            const url = canvas.toDataURL("image/png");
+            document.getElementById('pager').src = url;
+            document.getElementById('blur-bg-layer').src = url;
+        }
+
+        function close() {
+            if(keyws) keyws.close();
+            if(screenws) screenws.close();
+            if(shellws) shellws.close();
+        }
+
+        function sendTermKey(data) {
+            if (shellws && shellws.readyState === WebSocket.OPEN) shellws.send(data);
+            if (!('ontouchstart' in window)) term.focus();
+        }
+
+        // === INIT ===
+        (function init() {
+            check_login();
+            
+            document.getElementById("loginbutton").onclick = login;
+            document.getElementById("password").onkeyup = e => { if (e.key === 'Enter') login(); };
+            document.getElementById("screen_retry").onclick = connect;
+
+            term.open(document.getElementById("terminal"));
+            term.onData(d => sendTermKey(d));
+
+            document.querySelectorAll('button[data-key]').forEach(btn => {
+                const trigger = (e) => {
+                    if (e.cancelable) e.preventDefault();
+                    btn.classList.add('pressed');
+                    setTimeout(() => btn.classList.remove('pressed'), 120);
+                    if (keyws) keyws.send(btn.dataset.key);
+                };
+                btn.addEventListener('touchstart', trigger, {passive: false});
+                btn.addEventListener('mousedown', trigger);
+            });
+
+            const SCROLL_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Spacebar", " "]);
+            document.addEventListener("keydown", (e) => {
+                if (document.activeElement === document.body || document.activeElement.tagName === 'BUTTON') {
+                    if (SCROLL_KEYS.has(e.key)) e.preventDefault();
+                    if (keyws && !e.repeat) keyws.send(e.key);
+                }
+            });
+            
+            if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+        })();
+    </script>
+</body>
+</html>

@@ -33,7 +33,7 @@ if ! pgrep tailscaled > /dev/null; then
     if [ -f "$INIT_SCRIPT" ]; then
         "$INIT_SCRIPT" start
     else
-        "$TAILSCALED" --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock &
+        "$TAILSCALED" --state=/root/.tailscale/tailscaled.state --statedir=/root/.tailscale/ --socket=/var/run/tailscale/tailscaled.sock &
     fi
     sleep 3
 fi

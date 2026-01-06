@@ -47,7 +47,7 @@ TAILSCALE_BASE_URL="https://pkgs.tailscale.com/stable"
 INSTALL_DIR="/usr/sbin"
 INIT_SCRIPT="/etc/init.d/tailscaled"
 CONFIG_DIR="/etc/tailscale"
-STATE_DIR="/var/lib/tailscale"
+STATE_DIR="/root/.tailscale"
 TMP_DIR="/tmp/tailscale_install"
 
 # Configuration file
@@ -350,7 +350,7 @@ USE_PROCD=1
 
 start_service() {
     procd_open_instance
-    procd_set_param command /usr/sbin/tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock
+    procd_set_param command /usr/sbin/tailscaled --state=/root/.tailscale/tailscaled.state --statedir=/root/.tailscale/ --socket=/var/run/tailscale/tailscaled.sock
     procd_set_param respawn
     procd_set_param stdout 1
     procd_set_param stderr 1

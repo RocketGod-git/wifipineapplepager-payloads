@@ -143,7 +143,7 @@ A complete suite of payloads for managing Tailscale on the WiFi Pineapple Pager.
 - **Binaries:** `/usr/sbin/tailscale`, `/usr/sbin/tailscaled`
 - **Init Script:** `/etc/init.d/tailscaled`
 - **Configuration:** `/etc/tailscale/`
-- **State:** `/var/lib/tailscale/`
+- **State:** `/root/.tailscale/`
 - **Runtime:** `/var/run/tailscale/`
 
 ## Manual Commands (SSH)

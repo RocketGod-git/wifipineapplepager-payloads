@@ -219,7 +219,7 @@ killall tailscaled
 /usr/sbin/tailscaled         # Tailscale daemon binary
 /etc/init.d/tailscaled        # Init script for service management
 /etc/tailscale/config        # Configuration file
-/var/lib/tailscale/          # State directory
+/root/.tailscale/            # State directory
 /var/run/tailscale/          # Runtime socket directory
 ```
 
@@ -263,7 +263,7 @@ rm -f /etc/init.d/tailscaled
 
 # Remove configuration and state
 rm -rf /etc/tailscale
-rm -rf /var/lib/tailscale
+rm -rf /root/.tailscale
 rm -rf /var/run/tailscale
 ```
 

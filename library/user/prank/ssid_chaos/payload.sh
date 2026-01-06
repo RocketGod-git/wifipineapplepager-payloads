@@ -1,7 +1,7 @@
 #!/bin/bash
 # Title: SSID Chaos Engine v1.0
-# Author: RocketGod
-# Crew: The Pirates' Plunder
+# Author: RocketGod - https://betaskynet.com
+# Crew: The Pirates' Plunder - https://discord.gg/thepirates
 
 VERSION="1.0"
 LOOTDIR="/root/loot/ssid_chaos"
@@ -316,7 +316,6 @@ show_menu() {
 6. Horror
 7. Gamer
 8. Movies
-
 9. Stop Broadcast
 10. Clear Pool
 0. Exit"

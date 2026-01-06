@@ -2,18 +2,18 @@
 
 ### v1.0
 
-**Author:** RocketGod
-**Crew:** The Pirates’ Plunder
+**Author:** RocketGod - https://betaskynet.com
+**Crew:** The Pirates’ Plunder - https://discord.gg/thepirates
 
 ---
 
 ## What This Is
 
-SSID Chaos Engine is a themed SSID broadcast generator designed to weaponize curiosity, paranoia, humor, and confusion—purely at the name level. It doesn’t crack, sniff, or attack. It **pollutes the airspace with personality**.
+SSID Chaos Engine is a themed SSID broadcast generator designed to weaponize curiosity, paranoia, humor, and confusion—purely at the name level.
 
-Think of it as environmental storytelling for Wi-Fi scans.
+Every theme is a curated swarm of SSIDs, rotated and blasted out as a cohesive “scene.” Neighbors scan. Phones light up. People squint. Reality bends slightly.
 
-Every theme is a curated swarm of SSIDs, rotated and blasted out as a cohesive “scene.” Neighbors scan.
+Basically, WiFi Spam.
 
 ---
 
@@ -49,18 +49,6 @@ Each theme is logged, repeatable, and capped cleanly within SSID length limits.
 
 ---
 
-## Behavior
-
-* SSIDs are truncated safely to spec
-* Broadcast history is logged
-* Pools are cleared before injection
-* Themes are mutually exclusive
-* Start, stop, and purge are deliberate actions
-
----
-
 ☠️
 **RocketGod**
 *The Pirates’ Plunder*
-
-Note - WiFi spam seems unstable. Is it me? Is it you? Let me know and I'll fix it. 😎🤘
